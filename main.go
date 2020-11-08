@@ -7,6 +7,8 @@ import (
 	"net/http"
 	"os"
 	"time"
+
+	"github.com/schollz/httpfileserver"
 )
 
 const (
@@ -61,7 +63,17 @@ func main() {
 	logger.SetOutput(new(logWriter))
 
 	fmt.Printf("Serving HTTP on %v port %v\n", HOST, PORT)
-	http.Handle("/", Adapt(http.FileServer(http.Dir(DIRECTORY)), Logging(logger)))
+	// http.Handle("/", Adapt(http.FileServer(http.Dir(DIRECTORY)), Logging(logger)))
+
+	// attach static folder
+	debug := false
+	if debug {
+		http.Handle("/", Adapt(http.FileServer(http.Dir(DIRECTORY)), Logging(logger)))
+	} else {
+		http.Handle("/", Adapt(httpfileserver.New("/", ""), Logging(logger)))
+	}
+
+
 	err := http.ListenAndServe(fmt.Sprintf("%v:%v", HOST, PORT), nil)
 	if err != nil {
 		log.Fatal("ListenAndServe: ", err)
