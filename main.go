@@ -37,7 +37,7 @@ func main() {
 		os.Exit(1)
 	}
 
-	http.Handle("/", middleware.Adapt(server, middleware.RequestIdMiddleWare, middleware.LoggingMiddleWare, middleware.SetHeadersMiddleWare, middleware.CORSMiddleWare))
+	http.Handle("/", middleware.Adapt(server, middleware.RequestIdMiddleWare, middleware.LoggingMiddleWare, middleware.SetHeadersMiddleWare, middleware.CORSMiddleWare, middleware.CacheControlWrapper))
 
 	err = http.ListenAndServe(fmt.Sprintf("%v:%v", HOST, PORT), nil)
 	if err != nil {
