@@ -31,7 +31,7 @@ func main() {
 
 	logger.Infof("Serving HTTP on %v port %v", HOST, PORT)
 
-	server, err := httpfileserver.New("/", "")
+	server, err := httpfileserver.New("/", DIRECTORY)
 	if nil != err {
 		logger.Error(err)
 		os.Exit(1)

@@ -108,7 +108,8 @@ func (self *LRUCache[K, V]) Len() int {
 // }
 
 // New creates LRU cache with size capacity.
-func New[K comparable, V any](capacity int) *LRUCache[K, V] {
+// func New[K comparable, V any](capacity int) *LRUCache[K, V] {
+func New[K comparable, V any](capacity int) ICache[K, V] {
 	return &LRUCache[K, V]{
 		capacity: capacity,
 		ll:       new(list.List),

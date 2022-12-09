@@ -9,17 +9,20 @@ import (
 	"strings"
 	"time"
 
-	"github.com/fsnotify/fsnotify"
+	//	"github.com/fsnotify/fsnotify"
 
 	"github.com/sjsafranek/gosimpleserver/cache"
+	//"github.com/sjsafranek/gosimpleserver/utils"
+	"github.com/sjsafranek/gosimpleserver/filesystemwatcher"
+
 	"github.com/sjsafranek/logger"
 )
 
 type FileServer struct {
 	dir     string
 	route   string
-	cache   *cache.LRUCache[string, file]
-	watcher *fsnotify.Watcher
+	cache   cache.ICache[string, file]
+	watcher *filesystemwatcher.FileSystemWatcher
 }
 
 // New returns a new file server that can handle requests for
@@ -29,52 +32,26 @@ func New(route, dir string) (*FileServer, error) {
 
 	var server FileServer
 
-	lru_cache := cache.New[string, file](64)
-
-	//.BEGIN setup file system watcher
-	watcher, err := fsnotify.NewWatcher()
+	watcher, err := filesystemwatcher.New()
 	if nil != err {
 		return nil, err
 	}
-
-	go func() {
-		for {
-			select {
-			case event, ok := <-watcher.Events:
-				if !ok {
-					return
-				}
-
-				logger.Tracef("[filesystem] event=%s file=%s\n", event.Op, event.Name)
-
-				switch event.Op {
-				case fsnotify.Write:
-					server.UpdateFile(event.Name)
-				case fsnotify.Remove, fsnotify.Rename:
-					server.DeleteFile(event.Name)
-				}
-
-			case err, ok := <-watcher.Errors:
-				if !ok {
-					return
-				}
-				logger.Errorf("[filesystem] error: %v", err)
-			}
-		}
-	}()
 
 	err = watcher.Add(dir)
 	if nil != err {
 		return nil, err
 	}
-	//.END
 
 	server = FileServer{
 		dir:     dir,
 		route:   route,
 		watcher: watcher,
-		cache:   lru_cache,
+		cache:   cache.New[string, file](64),
 	}
+
+	watcher.OnChange = server.UpdateFile
+	watcher.OnDelete = server.DeleteFile
+	watcher.OnRename = server.DeleteFile
 
 	return &server, nil
 }
@@ -101,6 +78,11 @@ func (self *FileServer) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		logger.Warn("request canceled")
 
 	default:
+
+		if "" == filename {
+			http.FileServer(http.Dir(self.dir)).ServeHTTP(w, r)
+			return
+		}
 
 		item, err := self.GetFile(filename)
 		if nil != err {
@@ -132,7 +114,7 @@ func (self *FileServer) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 }
 
 func (self *FileServer) GetFile(filename string) (*file, error) {
-	logger.Trace("[cache] get -->", filename)
+	logger.Tracef("checking for '%v' in cache", filename)
 	value := self.cache.Get(filename)
 	if nil == value {
 		return self.FetchFile(filename)
@@ -160,19 +142,20 @@ func (self *FileServer) FetchFile(filename string) (*file, error) {
 		date:  time.Now(),
 	}
 
+	logger.Tracef("adding '%v' to cache", filename)
 	self.cache.Set(filename, value)
 
 	return &value, nil
 }
 
 func (self *FileServer) DeleteFile(filename string) error {
-	logger.Trace("[cache] delete -->", filename)
+	logger.Tracef("removing '%v' from cache", filename)
 	self.cache.Del(filename)
 	return nil
 }
 
 func (self *FileServer) UpdateFile(filename string) error {
-	logger.Trace("[cache] update -->", filename)
+	logger.Tracef("updating '%v' cache", filename)
 	if self.cache.Has(filename) {
 		_, err := self.FetchFile(filename)
 		return err
