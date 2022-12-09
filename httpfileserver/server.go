@@ -10,6 +10,7 @@ import (
 	"time"
 
 	"github.com/fsnotify/fsnotify"
+
 	"github.com/sjsafranek/gosimpleserver/cache"
 	"github.com/sjsafranek/logger"
 )
@@ -131,7 +132,7 @@ func (self *FileServer) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 }
 
 func (self *FileServer) GetFile(filename string) (*file, error) {
-	logger.Debug("[cache] get -->", filename)
+	logger.Trace("[cache] get -->", filename)
 	value := self.cache.Get(filename)
 	if nil == value {
 		return self.FetchFile(filename)
@@ -165,13 +166,13 @@ func (self *FileServer) FetchFile(filename string) (*file, error) {
 }
 
 func (self *FileServer) DeleteFile(filename string) error {
-	logger.Debug("[cache] delete -->", filename)
+	logger.Trace("[cache] delete -->", filename)
 	self.cache.Del(filename)
 	return nil
 }
 
 func (self *FileServer) UpdateFile(filename string) error {
-	logger.Debug("[cache] update -->", filename)
+	logger.Trace("[cache] update -->", filename)
 	if self.cache.Has(filename) {
 		_, err := self.FetchFile(filename)
 		return err
