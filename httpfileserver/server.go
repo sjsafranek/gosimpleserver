@@ -15,6 +15,15 @@ import (
 	"github.com/sjsafranek/logger"
 )
 
+var (
+	log *logger.Logger
+)
+
+func init() {
+	log = logger.New()
+	log.SetName("FILESERVER")
+}
+
 type FileServer struct {
 	dir     string
 	route   string
@@ -72,7 +81,7 @@ func (self *FileServer) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	select {
 
 	case <-ctx.Done():
-		logger.Warn("request canceled")
+		log.Warn("request canceled")
 
 	default:
 
@@ -111,7 +120,7 @@ func (self *FileServer) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 }
 
 func (self *FileServer) GetFile(filename string) (*file, error) {
-	logger.Tracef("checking for '%v' in cache", filename)
+	log.Tracef("checking for '%v' in cache", filename)
 	value := self.cache.Get(filename)
 	if nil == value {
 		return self.FetchFile(filename)
@@ -139,20 +148,20 @@ func (self *FileServer) FetchFile(filename string) (*file, error) {
 		date:  time.Now(),
 	}
 
-	logger.Tracef("adding '%v' to cache", filename)
+	log.Tracef("adding '%v' to cache", filename)
 	self.cache.Set(filename, value)
 
 	return &value, nil
 }
 
 func (self *FileServer) DeleteFile(filename string) error {
-	logger.Tracef("removing '%v' from cache", filename)
+	log.Tracef("removing '%v' from cache", filename)
 	self.cache.Del(filename)
 	return nil
 }
 
 func (self *FileServer) UpdateFile(filename string) error {
-	logger.Tracef("updating '%v' cache", filename)
+	log.Tracef("updating '%v' cache", filename)
 	if self.cache.Has(filename) {
 		_, err := self.FetchFile(filename)
 		return err
