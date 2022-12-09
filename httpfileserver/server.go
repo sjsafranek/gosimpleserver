@@ -8,11 +8,8 @@ import (
 	"os"
 	"strings"
 	"time"
-
-	//	"github.com/fsnotify/fsnotify"
-
+	
 	"github.com/sjsafranek/gosimpleserver/cache"
-	//"github.com/sjsafranek/gosimpleserver/utils"
 	"github.com/sjsafranek/gosimpleserver/filesystemwatcher"
 
 	"github.com/sjsafranek/logger"
