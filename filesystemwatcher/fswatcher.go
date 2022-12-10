@@ -16,7 +16,6 @@ var (
 
 func init() {
 	log = logger.New()
-	//log.SetName("FileSystemWatcher")
 	log.SetName("FSWatcher")
 }
 

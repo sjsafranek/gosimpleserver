@@ -8,7 +8,7 @@ import (
 	"os"
 	"strings"
 	"time"
-	
+
 	"github.com/sjsafranek/gosimpleserver/cache"
 	"github.com/sjsafranek/gosimpleserver/filesystemwatcher"
 
