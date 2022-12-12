@@ -8,7 +8,7 @@ import (
 
 	"github.com/sjsafranek/gosimpleserver/httpfileserver"
 	"github.com/sjsafranek/gosimpleserver/middleware"
-	
+
 	"github.com/sjsafranek/logger"
 )
 

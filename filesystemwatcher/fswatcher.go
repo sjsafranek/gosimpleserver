@@ -29,24 +29,6 @@ type FileSystemWatcher struct {
 	OnDelete    func(filename string) error
 }
 
-func (self *FileSystemWatcher) add(directory string) error {
-	self.lock.Lock()
-	defer self.lock.Unlock()
-
-	log.Debugf("adding '%v' to watch list", directory)
-
-	if nil == self.directories {
-		self.directories = make(map[string]bool)
-	}
-
-	if _, ok := self.directories[directory]; !ok {
-		self.directories[directory] = true
-		return self.watcher.Add(directory)
-	}
-
-	return nil
-}
-
 // Add directory to watch list along with all subdirectories
 func (self *FileSystemWatcher) Add(directory string) error {
 	err := self.add(directory)
@@ -64,6 +46,24 @@ func (self *FileSystemWatcher) Add(directory string) error {
 		if nil != err {
 			return err
 		}
+	}
+
+	return nil
+}
+
+func (self *FileSystemWatcher) add(directory string) error {
+	self.lock.Lock()
+	defer self.lock.Unlock()
+
+	log.Debugf("adding '%v' to watch list", directory)
+
+	if nil == self.directories {
+		self.directories = make(map[string]bool)
+	}
+
+	if _, ok := self.directories[directory]; !ok {
+		self.directories[directory] = true
+		return self.watcher.Add(directory)
 	}
 
 	return nil

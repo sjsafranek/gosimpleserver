@@ -21,7 +21,7 @@ var (
 
 func init() {
 	log = logger.New()
-	log.SetName("FILESERVER")
+	log.SetName("FileServer")
 }
 
 type FileServer struct {
